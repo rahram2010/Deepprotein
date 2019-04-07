@@ -1,0 +1,209 @@
+% --------------------------------------------------------------
+% This is all preamble stuff that you don't have to worry about.
+% Head down to where it says "Start here"
+% --------------------------------------------------------------
+ 
+\documentclass[12pt]{article}
+ 
+\usepackage[margin=1in]{geometry} 
+\usepackage{amsmath,amsthm,amssymb}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{tikz}
+    \usetikzlibrary{positioning}
+
+\tikzset{basic/.style={draw,fill=white!20,text width=1em,text badly centered}}
+\tikzset{input/.style={basic,circle}}
+\tikzset{weights/.style={basic,rectangle}}
+\tikzset{functions/.style={basic,circle,fill=white!10}}
+
+
+\usepackage{verbatim}
+\graphicspath{ {./Images/} }
+ 
+\title{Project Report 1}
+\date{02-16-2019}
+\author{Rahul Ramesh \\
+Starting the project and Neural Networks}
+
+
+\usepackage{titling}
+\renewcommand\maketitlehooka{\null\mbox{}\vfill}
+\renewcommand\maketitlehookd{\vfill\null}
+
+\begin{document}
+
+\begin{titlingpage}
+\maketitle
+\end{titlingpage}
+
+% --------------------------------------------------------------
+%                         Start here
+% --------------------------------------------------------------
+
+\section{Starting the project}
+This report will be broken down by what I've done to start the project, including setting up my coding environments and getting the data. Then the report will go into what I've learned about Neural networks and how they work including convolution neural network which is what I plan on using for the project. So lets being, I started the project 2 weeks ago, and progress has been good. First I set up my computational environment for this project.
+\subsection{Setting up my environments}
+The first thing that I did is set up a github for this project, so as to keep track of my code. The repository is available here: \url{https://github.com/rahram2010/Deepprotein}. Next I have set up my environments on my computer. I installed Anaconda, which is a environment manager on my computer to keep various projects serparate. After downloading and installing anaconda properly I made a environment called Deepprotein in my local file system, and this is the environment where I will do my work. I also installed all the necessary packages to that environment including Tensorflow, Keras, and jupyter notebook. These packages for python will allow me to write code more easily. Configuring these environments took a couple of days as I predicted to configure so that they work together, but they are working now and I can proceed to gather and clean data. 
+\subsection{Gathering and Cleaning Data}
+Gathering Data proved more cumbersome than I previously anticipated. My ideal dataset would include a protein sequence, the appropriate GO functional labels and be large enough so that it can be usable. I first started searching the \href{https://uniprot.org}{Uniprot website} for an adequate dataset. The Swiss prot dataset seemed like a good match because it was both large enough(>500,000 proteins) and contained the raw protein sequences. However getting the GO labels was not obvious. At first I thought I needed to write individual queries for each protein so as to get the GO labels, but this task for over 500,000 proteins would take too long. I then checked the GO website for more information. 
+\newline
+\newline
+The GO website is large and contains many different types of data including protein label data. This however was fruitless because the data file was not clear and using it to get non-redundant GO labels did not lead me anywhere. I looked for alternative datasets but none of the other datasets were large enough for my project, so I went back to the Swiss prot Dataset. I discovered from a bioinformatics discussion board website that you can filter the Swiss Prot dataset to include the GO dataset by doing an API call and retrieving the data that I wanted.  \\
+\newline
+So my data consists of 10 columns--Entry, EntryName, Protein Names, Gene Names, Organism, Length, Sequence, GO, Status, Organism ID, Keywords. 
+There is an example of the raw data that I will be using at the end of this report. After downloading the data, I have begun cleaning the data by removing redundant entries, and cleaning up by only using the ones that have valid experimental labels and removing ones that have empty function annotations which has left me with around 100 thousand data entries. Now I am ready to start coding the project, and building the model. 
+\section{Neural Networks}
+I will start by explaining what I have learned about Nueral Networks from the basic level. This information is taken from the Bishop book and also online sources. 
+\subsection{Single Layer Perceptron}
+A single layer perceptron is one of the most basic neural networks as it only has one layer, yet it illustrates the concept and some details fairly well. We define n inputs as $I_1, I_2, I_3,...,I_n \in R^n $ and define n number of weights $w_1,w_2,w_3,...,w_n \in R^n$. A single layer of a neural network works as such. Each input is multiplied by the weight and then they are passed to a processing unit, and after they are passed to a activation function or threshold function which "activates" or outputs 1 if the threshold is met. So this is the diagram of this network:
+\newline
+\newline
+
+\begin{tikzpicture}
+        \node[functions] (center) {};
+        \node[below of=center,font=\scriptsize,text width=4em] {Activation function};
+        \draw[thick] (0.5em,0.5em) -- (0,0.5em) -- (0,-0.5em) -- (-0.5em,-0.5em);
+        \draw (0em,0.75em) -- (0em,-0.75em);
+        \draw (0.75em,0em) -- (-0.75em,0em);
+        \node[right of=center] (right) {};
+            \path[draw,->] (center) -- (right);
+        \node[functions,left=3em of center] (left) {$\sum$};
+            \path[draw,->] (left) -- (center);
+        \node[weights,left=3em of left] (2) {$w_2$} -- (2) node[input,left of=2] (l2) {$I_3$};
+            \path[draw,->] (l2) -- (2);
+            \path[draw,->] (2) -- (left);
+        \node[below of=2] (dots) {$\vdots$} -- (dots) node[left of=dots] (ldots) {$\vdots$};
+        \node[weights,below of=dots] (n) {$w_n$} -- (n) node[input,left of=n] (ln) {$I_n$};
+            \path[draw,->] (ln) -- (n);
+            \path[draw,->] (n) -- (left);
+        \node[weights,above of=2] (1) {$w_1$} -- (1) node[input,left of=1] (l1) {$I_2$};
+            \path[draw,->] (l1) -- (1);
+            \path[draw,->] (1) -- (left);
+        \node[weights,above of=1] (0) {$w_0$} -- (0) node[input,left of=0] (l0) {$I_1$};
+            \path[draw,->] (l0) -- (0);
+            \path[draw,->] (0) -- (left);
+        \node[below of=ln,font=\scriptsize] {inputs};
+        \node[below of=n,font=\scriptsize] {weights};
+    \end{tikzpicture}
+\newline
+So a single layer can described as the weighted sum over the inputs, or $\sum_{i=0}^{n} w_iI_i$. And the most the most common activation function is the sigmoid function: $$ \frac{1}{1+e^{-x}}$$
+It is important to note that the weights can be updated in an iterative way to minimize some loss function, and this is how the model gets better at the task. Typically for such a simple network the loss function would be the mean squared error. And how the algorithm would choose new weights would be through some optimization algorithm such as Gradient Descent. 
+\subsection{Illustrative example}
+I will show the logical OR gate as a single layer neural network. The OR gate is such that if either of the inputs are 1 then the gate is 1. So we make this into a neural network. 
+\begin{tikzpicture}
+        \node[functions] (center) {};
+        \node[below of=center,font=\scriptsize,text width=4em] {Activation function, t=.5};
+        \draw[thick] (0.5em,0.5em) -- (0,0.5em) -- (0,-0.5em) -- (-0.5em,-0.5em);
+        \draw (0em,0.75em) -- (0em,-0.75em);
+        \draw (0.75em,0em) -- (-0.75em,0em);
+        \node[right of=center] (right) {};
+            \path[draw,->] (center) -- (right);
+        \node[functions,left=3em of center] (left) {$\sum$};
+            \path[draw,->] (left) -- (center);
+        \node[weights,above of=2] (1) {$1$} -- (1) node[input,left of=1] (l1) {$I_2$};
+            \path[draw,->] (l1) -- (1);
+            \path[draw,->] (1) -- (left);
+        \node[weights,above of=1] (0) {$1$} -- (0) node[input,left of=0] (l0) {$I_1$};
+            \path[draw,->] (l0) -- (0);
+            \path[draw,->] (0) -- (left);
+        \node[below of=ln,font=\scriptsize] {inputs};
+        \node[below of=n,font=\scriptsize] {weights};
+    \end{tikzpicture}
+\newline Where our activation function is simply a threshold of $t=.5$. This neural network models a OR gate because the weighted sum of two inputs 0,0 is clearly 0 which is below .5 so the result is 0, and if either of the two inputs are 1 then they are above the threshold and the output is 1, and clearly when both of the inputs are 1 then the weighted sum is 2, and the output is 1. 
+\subsection{Multiple Layer Perceptron}
+The multiple layer perceptron is put simply when single layer output is the input to another single layer perceptron and these two single layer perceptrons form a 2 layer perceptron and we can repeat this process for however many layers as our computational power allows. We can succinctly represent the single layer as follows $$\sum_{i=0}^{n} w_iI_i$$ and we can represent the 2 layer perceptron as follows: $$ f(x) = \sigma(\sum_{j=0}^{m}w_j^2(\sum_{i=0}^{n} w_iI_i))$$
+where $w^2$ represents the second set of weights for the second layer, and the $\sigma$ is the activation function. In the multiple layer neural network the output can be a probability distribution, and the activation function is nonlinear. There are many types of multilayer neural networks with many different types of activation functions. One problem that can occur with neural networks is that the presence of local minima in the error or loss function with the corresponding randomly assigned weights can throw off the invariance of the network. So one network that can overcome this problem without using regularization techniques is the Convolutional Neural Network. 
+\subsubsection{Convolutional Neural Network}
+A convolutional Neural Network is exactly the same as the fully connected multilayer network described above except that each neuron is not connected to every neuron because this results in too complex network that depending on the activation function is not invariant, so the neuron is typically only connected to 3 other neurons in the next layer.
+\begin{figure}[t]
+\includegraphics[width= \paperwidth,angle=90]{proteindata_1}
+\centering
+\end{figure}
+
+
+
+\title{Project Report 2}
+\date{03-13-2019}
+\author{Rahul Ramesh\\}
+\maketitle
+\newpage
+\section{Encoding the input}
+In this report I'll start with giving a progress report on how my project has been going so far, and then I'll go into the details of the layers of the  neural network, mainly, the regularizes, pooling, and convolution layers.
+I have started to make significant progress on the model, but I ran into some difficulties with encoding the input for the model, along with some memory issues with the model.
+
+The input to the neural network does not take categorical or sequence data as inputs, so I needed to encode the input as numerical values. This is simple enough. There are 20 Amino Acids that a protein can be composed of each with a different capital letter. So if I encode each sequence with the the number of what each amino acid corresponds to then the sequence of letters will be transformed into a sequence of numbers. For example a simple protein could be $MARN$ will be transformed into $13,1,18,14$ where the position of the letter in the alphabet is the number that appears in the corresponding numerical sequence. This was simple to do for all 500,000 protein sequences, but this was not the final encoding sequence. A convolutional neural network usually takes a one hot encoded sequence where the numerical sequence is transformed into a sequence of vectors in which the number $i$ corresponds to the $ith$ place in the vector being a 1. So just to be explicit the numerical sequence $13,1,18,14$ should be transformed to $$<0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0>,$$$$<1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0>,$$$$<0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0>,$$$$<0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0>$$ This proved to more challenging of a transformation than anticipated. So first I had to find a way to do this for all the protein sequences. What I ended up doing was making a custom function in python to go through my dataframe and make a matrix where each row has 20 places and form the one hot encoded sequence from this. This took some tinkering as I had to make sure that the size of the input was the same across all sequences, so I had to arbitrarily choose a size for the matrix and pad the sequences with $0$ vectors to ensure a uniform size. This is where memory issues came about. 
+\subsection{Dealing with Memory Issues}
+When I was one hot encoding the sequences the program kept crashing as my computer kept timing out. So I chose to one hot encode the matrices with the max length sequence, so in my case the maximum sequence had a length of 35,016 letters. So a sequence of this size was taking up too much memory in my computer as one hot encoding this sequence would mean building a matrix with 35,016 rows. So I needed to drop some sequences from my dataframe. I first chose my cutoff to be 18,000. This number also proved to be too high. After many iterations of testing for what sequence length my computer could handle, I settled on a sequence length of 500. Now this sequence length is still robust enough that I can build a sophisticated model as I still have about 300,000 proteins in my dataframe. 
+
+I also noticed some inefficiencies in my dataframe. I noticed that some of the proteins had no function labels, so these would be useless to my model. I removed these proteins from the dataframe, and my code began running much faster. 
+\section{Building the model}
+I have also started to build the actual model in tensorflow which is a python framework. I have tested and chosen some hyperparameters and have started to implement them in the model. I have not yet ran the model, so these are subject to change. I will list my hyperparamaters and will explain them in the section below. I have chosen a dropout rate of .25 after trying different ones and reading which ones would be useful. For the algorithm that will update my weights for my neurons I have chosen gradient descent/back-propagation, and I am still deciding on how to select a loss function that will result in multiple classes for the output. 
+
+\subsection{Convolution layer}
+A convolutional neural network can be thought of multiple layers of sparsely connected neural networks(or perceptrons) where a main operation is the convolution part. Convolution in this sense just means a combination of 2 functions. Assume you have already trained your neural network on some function so all your weights are optimal, and lets run through this simplified network and see what happens. So as we have said the first layer is the convolution layer. The convolution layer takes your first input which is in this case just a matrix $A$ with some numbers. We shall define a kernel $K$ to mean a matrix of smaller dimension to your input and the convolution is just $K$ sliding over your matrix from top to bottom and right to left over $A$ and performing point multiplications and saving the answers to another smaller matrix. So for example let $$A= 
+\begin{pmatrix}
+x_1&x_2&x_3&x_4\\
+x_5&x_6&x_7&x_8\\
+x_9&x_{10}&x_{11}&x_{12}\\
+x_{13}&x_{14}&x_{15}&x_{16}\\
+\end{pmatrix}
+$$ and we shall define $$K = \begin{pmatrix}
+y_1&y_2\\
+y_3&y_4\\
+\end{pmatrix}$$
+Now the convolution layer just performs a series of point multiplications across matrix $A$ to result in a feature map $F$. So for simplicity let us define $K = \begin{pmatrix}
+1&1\\
+0&1\\
+\end{pmatrix}$ and assume a stride $s = 2$.
+Then the feature map becomes $$\begin{pmatrix}
+x_1* 1 + x_2+*1 +
+x_5* 0+ x_6* 1&
+x_3* 1 + x_4+*1 +
+x_7* 0+ x_8* 1 \\
+x_9* 1 + x_{10}+*1 + 
+x_{13}* 0+ x_{14}* 1 & 
+x_{11}* 1 + x_{12}+*1 +
+x_{15}* 0+ x_{16}* 1 \\
+\end{pmatrix}$$
+Note that this is only because we have a stride of 2, if it was another value then the $K$ would slide over the matrix $A$ would have to be padded with 0's on the sides because $K$ would slide one column at a time. This process of convoluting $A$ and $K$ like above will result in a smaller amount of data, but one that carries more information about our input. This process of determining $K$ is what our model will update, now I would like to clarify what exactly this convolution process is doing through an example from fluid mechanics. 
+
+\subsection{An important example from fluid mechanics}
+I am not a physicist, but I found this example to be enlightening to understand what the convolution process is actually doing. We shall consider the process of diffusion between two fluids. Suppose you have fluid A and fluid B in an aquarium split by a barrier. Say we have freshwater on one side and salt water on the other side. If we remove the barrier carefully eventually the salt concentration will be the same for the entire aquarium. Now we construct an aquarium with many barriers both across the whole aquarium and also in different depths of the aquarium, so that we have partitioned the aquarium into cubes. Now each cube of water will have a different level of salt concentration. When we remove all the barriers now there still will be diffusion but among cubes with similar salt concentrations this process will be slower than cubes with very large differences in salt concentrations.  So in fluid mechanics the first part of the diffusion equation solution can be interpreted as a convolution. We now need to extended this concept of diffusion to our concept of the kernel. In fluid mechanics there is a concept of a propagator which regulates the flow of particles. The propagator is a probability density function, so to unify this concept with the kernel all we have to do is normalize out kernel. Now we have a important interpretation of the convolution operation.
+
+The convolution operation with a normalized kernel governs the flow of information from our input according to some initial properties of the input. Take for example the well known edge detecting kernel $$\begin{pmatrix}
+-1&-1&-1\\
+-1&8&-1\\
+-1&-1&-1\\
+\end{pmatrix}$$ So in this example similar to the example above, the convolution will oversee concentrations of information but instead of saltiness it will be pixel concentration. So the edge detecting kernel acts over the whole image and makes the pixels flow toward the edges of the image.
+
+\subsubsection{Updating the Kernel}
+So how do we update the kernel with the correct weights in order to extract the necessary information to correctly classify our input? We use the well known back-propogation algorithm to update our weights. I will present a slightly simplified view of the back-propagation algorithm. We define an activation function to be the function which transforms the weights for a kernel and transform them to produce an output. A common activation function for each node in our network is the symmetrical sigmoid $s_{c}(x):R \xrightarrow{} (0,1) $ function $$ s_{c}(x) = \frac{1}
+{1 + e^{−cx}}
+ $$  where $c$ is a arbitrary constant. It is important to know that the actual activation function does not matter as long as it is differentiable and continuous. So in our case with the sigmoid function the output of a node will be determined by $$\frac{1}{1+ exp(\sum_{i=1}^{n}x_{i}w_{i}  - b}$$ on weights $w_1, w_2, ..., w_n$ and inputs $x_1, x_2,...,x_n$ where $b$ is a bias. Now the whole network that we are building is all to minimize an error function. Now given a training set $ {(x_1, t_1), . . .,(x_p, t_p)}$ where the $\bold{t} $is the output for training we would like to make $t$ the same as $o$ which is the correct output for the input then we can define a error function as $$E = \frac{1}{2}\sum_{i=1}^{p}||(o_i - t_i)||^{2}$$ Now it does not actually matter how we calculate the loss function to calculate the output $o$. So we continue, to update the weights we calculate the gradient of E according to the weights, and by repeated application of the chain rule we get \begin{equation} \nabla E = (
+\frac{\partial E}{\partial w_1}, \frac{\partial W}{\partial w_2},...,\frac{\partial E}{\partial w_n})
+\end{equation} and we update the individual weights like this $ \Delta w_i = l* \frac{\partial E}{\partial w_i}$. Where $l$ is the learning rate and is something that we define. This algorithm will result in neural network finding the local minima for the error for non-convex functions and the global minima for convex functions. 
+ \subsection{ReLU and Pooling layers} 
+ We talked about activation functions in the previous section. The activation function that is most commonly used for CNN's is the rectified linear unit activation function defined as $ y = max(0,x)$ where the ReLU is a separate layer in our CNN that applies this function to the whole matrix after the convolution layer. It merely takes any negative values in our feature map matrix and makes them 0. This is necessary to make the matrix non linear. The max pooling layer is another layer in our CNN model which shrinks the input information. The max pooling layer is similar to the kernel except the feature map is just composed of the max values from matrix $A$. This way the matrix only carries the most valuable information.\\
+ \\A complete CNN then is composed of this sequence of layers: convolution, ReLU, Max pooling. These layers can repeat as many times as necessary. 
+ \title{Project Report 3}
+\date{04-03-2019}
+\author{Rahul Ramesh\\}
+\maketitle
+\newpage
+\section{Running into difficulties}
+I will keep this report short, as I do have updates with the actual math that I have learned but I think my time right now is better suited to fixing some issues with my code. I ran the model with no modification on the dimensions of the output, and while it did produce an output it did not make any sense. I was running into errors and probabilities over 1 and other probabilities that were very very small. These issues with the output of the model all stemmed I learned later after some debugging from the way that I encoded my output. So the output of the model is supposed to be GO tags that would correspond to the mapping of the data. This however was not he output of my model. One output of the model was that it gave a score of 0 to all the options of the labels. So this seemed to be incorrect. I encoded my output, the same way that I encoded the input to the training model through one-hot encoding. So as a string of 0's and 1's. I limited it to 50 categories, and I limited the size of the GO tags, so if the list of GO tags was greater than 50 then I just discarded the rest of the tags. 
+\\
+This method of deleting the tags resulted in various problems with the model. The reason for this was because that although that some GO tags had less than 50 function tags, these tags were not unique. In other words the number of tags between proteins were not the same, so while I wanted to limit the number of tags to 50 for the entire model just limiting the length of the tags did not achieve this. Each protein has some tags but the next protein could have completely different tags, and I made an error in designing the output. When I checked how many function tags were actually being processed by my model it was actually well over 500. 
+\\
+So now I am going back to actually limit the number of tags to 50, so that the output is more reasonable for my model. I am doing this by deciding the 50 most popular tags and then one-hot encoding the output from this list of 50 tags. I am currently dealing with some coding difficulties with doing this. I realize that puts me a little behind schedule, but I hope to resolve this issue soon and get back to exploring dimension reduction techniques. \subsection{Choosing a loss function} 
+I would just like to briefly describe the loss function for my CNN. It is the binary cross entropy function to capture the most randomness in my data. It is commonly used in multi-label classification problems. How it works that my final layer of the model will be just regular sigmoid fully connected layer, and the cost function will be this loss function where it gives a probability measure between 0 and 1 for each category for the protein's function. The formula is this:
+$$\sum_{i=1}^{M}y_{o,i}log(p_{o,i})$$
+Where the variables are as follows:\\
+M - number of classes (number of protein classes -  50)\\
+log - the natural log\\
+y - binary indicator (0 or 1) if class label c is the correct classification for observation $o$\\
+p - predicted probability observation $o$ is of class $i$\\
+\newpage
+
+\end{document}
